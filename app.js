@@ -9,7 +9,7 @@ const crypto = require('crypto');
 const cors = require('cors')
 const SECRET_KEY = crypto.randomBytes(64).toString('hex');
 const corsOptions = {
-    origin: ["http://localhost:3000"],
+    origin: ["http://localhost:3000"]
   }
 const app = express();
 app.use(bodyParser.json());
