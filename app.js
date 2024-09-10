@@ -14,7 +14,7 @@ const corsOptions = {
 const app = express();
 app.use(bodyParser.json());
 app.use(expressJwt({ secret: SECRET_KEY, algorithms: ['HS256'] }).unless({ path: ['/login', '/register'] }));
-app.use(cors(corsOptionsS))
+app.use(cors(corsOptions))
 
 // Register a new user
 app.post('/register', (req, res, next) => {
