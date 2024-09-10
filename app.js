@@ -6,15 +6,18 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const { expressjwt: expressJwt } = require("express-jwt");
 const crypto = require('crypto');
-
+const cors = require('cors')
 const SECRET_KEY = crypto.randomBytes(64).toString('hex');
-
+const corsOptions = {
+    origin: 'https://books-manager-api.adaptable.app/',
+  }
 const app = express();
 app.use(bodyParser.json());
 app.use(expressJwt({ secret: SECRET_KEY, algorithms: ['HS256'] }).unless({ path: ['/login', '/register'] }));
+app.use(cors(corsOptionsS))
 
 // Register a new user
-app.post('/register', (req, res) => {
+app.post('/register', (req, res, next) => {
     const { username, password } = req.body;
     const hashedPassword = bcrypt.hashSync(password, 10);
 
@@ -31,7 +34,7 @@ app.post('/register', (req, res) => {
 });
 
 // Login and get a token
-app.post('/login', (req, res) => {
+app.post('/login', (req, res, next) => {
     const { username, password } = req.body;
 
     db.get('SELECT * FROM users WHERE username = ?', [username], (err, user) => {
@@ -53,7 +56,7 @@ app.post('/login', (req, res) => {
 });
 
 // Create a new book
-app.post('/books', (req, res) => {
+app.post('/books', (req, res, next) => {
     const { title, author, published_date, isbn, pages, cover_url, language } = req.body;
     db.run(
         'INSERT INTO books (title, author, published_date, isbn, pages, cover_url, language) VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -68,7 +71,7 @@ app.post('/books', (req, res) => {
 });
 
 // Retrieve a list of all books
-app.get('/books', (req, res) => {
+app.get('/books', (req, res, next) => {
     db.all('SELECT * FROM books', [], (err, rows) => {
         if (err) {
             return res.status(500).json({ error: err.message });
@@ -78,7 +81,7 @@ app.get('/books', (req, res) => {
 });
 
 // Retrieve a single book by ID
-app.get('/books/:id', (req, res) => {
+app.get('/books/:id', (req, res, next) => {
     const { id } = req.params;
     db.get('SELECT * FROM books WHERE id = ?', [id], (err, row) => {
         if (err) {
@@ -92,7 +95,7 @@ app.get('/books/:id', (req, res) => {
 });
 
 // Update an existing book
-app.put('/books/:id', (req, res) => {
+app.put('/books/:id', (req, res, next) => {
     const { id } = req.params;
     const { title, author, published_date, isbn, pages, cover_url, language } = req.body;
     db.run(
@@ -111,7 +114,7 @@ app.put('/books/:id', (req, res) => {
 });
 
 // Delete a book
-app.delete('/books/:id', (req, res) => {
+app.delete('/books/:id', (req, res, next) => {
     const { id } = req.params;
     db.run('DELETE FROM books WHERE id = ?', [id], function (err) {
         if (err) {
@@ -123,6 +126,7 @@ app.delete('/books/:id', (req, res) => {
         res.status(204).end();
     });
 });
+
 app.use((err, req, res, next) => {
     if (err.name === 'UnauthorizedError') {
         if (err.message === 'jwt expired') {
